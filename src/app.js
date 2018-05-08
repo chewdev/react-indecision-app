@@ -6,8 +6,30 @@ class IndecisionApp extends React.Component {
 		this.handlePick = this.handlePick.bind(this);
 		this.handleDeleteOption = this.handleDeleteOption.bind(this);
 		this.state = {
-			options: props.options
+			options: []
 		};
+	}
+
+	componentDidMount() {
+		try {
+			const options = JSON.parse(localStorage.getItem("options"));
+			if (options) {
+				this.setState(() => ({options}));
+			}
+		}	catch (e) {
+			// Don't do anything
+		}
+	}
+
+	componentDidUpdate(prevProps, prevState) {
+		if(prevState.options.length !== this.state.options.length) {
+			const json = JSON.stringify(this.state.options);
+			localStorage.setItem('options', json);
+		}
+	}
+
+	componentWillUnmount() {
+		console.log('componentWillUnmount');
 	}
 
 	handleDeleteOptions() {
@@ -65,9 +87,7 @@ class IndecisionApp extends React.Component {
 	}
 }
 
-IndecisionApp.defaultProps = {
-	options: []
-};
+
 
 /*
 	classless/stateless functional components are faster than class/stateful
@@ -111,6 +131,7 @@ const Options = (props) => {
 		return (
 				<div>
 					<button onClick={props.handleDeleteOptions}>Remove All</button>
+					{!props.options.length ? <p> Please add options to the list to get started </p> : null}
 					{optionList}
 				</div>
 			);
@@ -129,9 +150,12 @@ class AddOption extends React.Component {
 		const option = e.target.elements.option.value.trim();
 		
 		const error = this.props.handleAddOption(option);
-		e.target.elements.option.value = "";
 		
-		this.setState(() => ({ error : error }));
+		this.setState(() => ({ error }));
+
+		if(!error) {
+			e.target.elements.option.value = '';
+		}
 	}
 
 	render() {
